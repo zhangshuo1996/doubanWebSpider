@@ -5,6 +5,7 @@ import time
 import re
 import json
 import pandas as pd
+import os
 
 
 
@@ -32,7 +33,8 @@ def get_bookinfo(bookinfo):
 
 
 def get_pagesource_by_bookname(bookname="人类简史"):
-    driver = webdriver.Firefox(executable_path=r"./tools/geckodriver.exe")  # Firefox浏览器
+    # driver = webdriver.Firefox(executable_path=r"spider_douban/geckodriver")  # Firefox浏览器
+    driver = webdriver.Firefox(executable_path=r"/usr/local/bin/geckodriver")  # Firefox浏览器
 
     # driver.set_window_size(width=960, height=1080, windowHandle="current")
 
@@ -69,13 +71,30 @@ def bookname_clean(bookname):
     bookname = re.sub(pat, '', bookname)
     return bookname
 
+def get_cur_path():
+    """
+    获取当前路径
+    :return:
+    """
+    # print(os.path.dirname(os.path.abspath("__file__")))
+    # print(os.path.pardir)
+    # print(os.path.join(os.path.dirname("__file__"), os.path.pardir))
+    # print(os.path.abspath(os.path.join(os.path.dirname("__file__"), os.path.pardir)))
+    return os.path.dirname(os.path.abspath("__file__"))
+
 
 if __name__ == "__main__":
     import PySimpleGUI as sg
 
+    cur_path = get_cur_path()
+    # xls_file_path = os.path.join(cur_path, '..', 'xls_file/')
+    xls_file_path = '/Users/coke-1996/project_list/douban_spider/xls_file'
+
+    '/Users/coke-1996/project_list/douban_spider/xls_file/book_list.xlsx'
+
     sg.theme('green')  # please make your windows colorful
 
-    layout = [[sg.Text('请输入包含书名的excel文件路径')],
+    layout = [[sg.Text(xls_file_path)],
                 [sg.Input(), sg.FileBrowse()],
                 [sg.OK(), sg.Cancel()] ]
 
@@ -84,7 +103,7 @@ if __name__ == "__main__":
     window.close()
     excel_filepath = values[0]
     print(excel_filepath)
-    layout = [[sg.Text('输入excel文件中书名所在的列名')],
+    layout = [[sg.Text('书名')],
           [sg.Input("书名")],
           [sg.OK()] ]
 
@@ -96,7 +115,10 @@ if __name__ == "__main__":
     colname = values[0] or "书名"
     if len(colname.strip()) == 0:
         colname = "书名"
-    df = pd.read_excel(excel_filepath.strip())
+    file_path = '/Users/coke-1996/project_list/douban_spider/xls_file/book_list.xlsx'
+    # print('--------', excel_filepath.strip())
+    # df = pd.read_excel(excel_filepath.strip())
+    df = pd.read_excel(file_path)
     print("您选择的excel文件共有【%s】本书需要爬取豆瓣信息:" % df.shape[0])
 
     for name in df[colname]:
@@ -122,5 +144,6 @@ if __name__ == "__main__":
             i += 1
         new_row_lst.append(row)
         print("*" * 30)
+        time.sleep(10)
     new_df = pd.DataFrame(new_row_lst)
     new_df.to_excel("采集完成的豆瓣图书信息.xlsx", index=False)
